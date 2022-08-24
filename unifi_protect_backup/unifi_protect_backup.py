@@ -6,7 +6,7 @@ import pathlib
 import re
 import shutil
 from asyncio.exceptions import TimeoutError
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Callable, List, Optional
 
 import aiocron
@@ -486,8 +486,13 @@ class UnifiProtectBackup:
                 # So we will wait 1.5x the keyframe interval to ensure that there is always ample video
                 # stored and Protect can return a full clip (which should be at least the length requested,
                 # but often longer)
-                time_since_event_ended = datetime.utcnow().replace(tzinfo=timezone.utc) - event.end
-                sleep_time = (timedelta(seconds=5 * 1.5) - time_since_event_ended).total_seconds()
+                now = datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(self._protect.bootstrap.nvr.timezone)
+                time_since_event_ended = now - event.end
+                if time_since_event_ended < timedelta(seconds=0):
+                    logger.warning('  Negative time since event ended, please check timezone of host and NVR match.')
+                    time_since_event_ended = timedelta(seconds=0)
+
+                sleep_time = (timedelta(seconds=10) - time_since_event_ended).total_seconds()
                 if sleep_time > 0:
                     logger.debug(f"  Sleeping ({sleep_time}s) to ensure clip is ready to download...")
                     await asyncio.sleep(sleep_time)

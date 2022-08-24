@@ -6,7 +6,7 @@ import pathlib
 import re
 import shutil
 from asyncio.exceptions import TimeoutError
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Callable, List, Optional
 
 import aiocron
@@ -286,6 +286,10 @@ class UnifiProtectBackup:
         # Start the pyunifiprotect connection by calling `update`
         logger.info("Connecting to Unifi Protect...")
         await self._protect.update()
+
+        # Print timezone info for debugging
+        logger.debug(f'NVR TZ: {self._protect.bootstrap.nvr.timezone}')
+        logger.debug(f'Local TZ: {datetime.now(timezone.utc).astimezone().tzinfo}')
 
         # Get a mapping of camera ids -> names
         logger.info("Found cameras:")

@@ -491,6 +491,7 @@ class UnifiProtectBackup:
                 # stored and Protect can return a full clip (which should be at least the length requested,
                 # but often longer)
                 now = datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(self._protect.bootstrap.nvr.timezone)
+                logger.debug(f'{now=}, {event.start=}, {event.end=}')
                 time_since_event_ended = now - event.end
                 if time_since_event_ended < timedelta(seconds=0):
                     logger.warning('  Negative time since event ended, please check timezone of host and NVR match.')
